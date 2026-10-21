@@ -31,3 +31,19 @@ password-gated session.
 - `npm test` — run the test suite (Vitest).
 - `npm run typecheck` — run the TypeScript compiler in check-only mode.
 - `npm run build` — production build (Next.js).
+
+## Supabase keep-alive
+
+Supabase free tier mem-*pause* project yang lama tidak aktif. Vercel Cron memanggil
+`/api/keep-alive` setiap hari pukul 00:00 UTC (07:00 WIB); endpoint ini menjalankan satu query
+baca ke tabel `students` dengan anon key. Gagal → HTTP 500 dan baris `keep-alive jemput-sis FAIL ...`
+di Vercel Logs (tidak ada notifikasi email).
+
+- Env var di Vercel (Production): `CRON_SECRET` (wajib, `openssl rand -hex 32`),
+  `KEEP_ALIVE_TABLE` (opsional, ganti tabel ping). URL dan anon key memakai
+  `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` yang sudah ada.
+- Cek manual: `curl -s -H "Authorization: Bearer <CRON_SECRET>" https://<domain>/api/keep-alive`
+  → HTTP 200 dengan `"ok": true`.
+- Vercel → Logs, filter `/api/keep-alive`: cari `FAIL`, `CRASH`, atau status 500.
+
+Detail: [docs/SUPABASE-KEEP-ALIVE.md](docs/SUPABASE-KEEP-ALIVE.md).
